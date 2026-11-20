@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDebouncedValue } from '../../shared/hooks/useDebouncedValue';
+import { Button } from '../../shared/ui/Button';
 import { Card } from '../../shared/ui/Card';
 import { EmptyState } from '../../shared/ui/EmptyState';
 import { ErrorState } from '../../shared/ui/ErrorState';
@@ -17,7 +18,10 @@ export function ShipmentsPage() {
   const { filters, setStatus, setSearch, searchParams } = useShipmentFilters();
   // Wait until Inès stops typing: one request per search, not one per keystroke (rate limit).
   const orderNumber = useDebouncedValue(filters.search.trim(), 300);
-  const { data, error, isLoading, reload } = useShipments({ status: filters.status, orderNumber: orderNumber || undefined });
+  const { shipments, error, isLoading, reload, hasMore, loadMore, isLoadingMore, loadMoreError } = useShipments({
+    status: filters.status,
+    orderNumber: orderNumber || undefined,
+  });
 
   const isFiltered = Boolean(filters.status || orderNumber);
   // Keep the filters in the URL when opening or closing a shipment.
@@ -32,14 +36,28 @@ export function ShipmentsPage() {
       <Card>
         {error ? (
           <ErrorState error={error} onRetry={reload} />
-        ) : isLoading && !data ? (
+        ) : isLoading && !shipments ? (
           <LoadingState label="Loading shipments…" />
-        ) : data?.data.length === 0 ? (
+        ) : shipments?.length === 0 ? (
           isFiltered ? <EmptyState title="No shipments match these filters" /> : <EmptyState title="No shipments yet" />
         ) : (
           <div className={isLoading ? 'opacity-60 transition-opacity' : undefined}>
-            <ShipmentsTable shipments={data?.data ?? []} selectedId={shipmentId} onSelect={(shipment) => goTo(`/shipments/${shipment.id}`)} />
-            <p className="px-4 py-3 text-xs text-ink/50">Showing {data?.data.length} shipments</p>
+            <ShipmentsTable shipments={shipments ?? []} selectedId={shipmentId} onSelect={(shipment) => goTo(`/shipments/${shipment.id}`)} />
+            {loadMoreError ? (
+              <div className="p-4">
+                <ErrorState compact error={loadMoreError} onRetry={loadMore} />
+              </div>
+            ) : null}
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <p className="text-xs text-ink/50">
+                Showing {shipments?.length} shipments{hasMore ? '' : ' · that’s all of them'}
+              </p>
+              {hasMore && (
+                <Button variant="secondary" size="sm" isLoading={isLoadingMore} disabled={isLoadingMore} onClick={loadMore}>
+                  Load more
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </Card>
