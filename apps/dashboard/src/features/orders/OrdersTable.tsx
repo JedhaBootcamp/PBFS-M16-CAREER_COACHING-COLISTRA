@@ -53,10 +53,15 @@ export function OrdersTable({ orders, pendingOrderId, onCreateLabel, onCompareRa
             <Td className="text-right tabular-nums">{formatMoney(order.total)}</Td>
             <Td>
               <div className="flex justify-end gap-2">
-                <Button variant="secondary" size="sm" onClick={() => onCompareRates(order)}>
+                <Button variant="secondary" size="sm" disabled={pendingOrderId === order.id} onClick={() => onCompareRates(order)}>
                   Compare rates
                 </Button>
-                <Button size="sm" isLoading={pendingOrderId === order.id} onClick={() => onCreateLabel(order)}>
+                <Button
+                  size="sm"
+                  isLoading={pendingOrderId === order.id}
+                  disabled={pendingOrderId === order.id}
+                  onClick={() => onCreateLabel(order)}
+                >
                   Create label · {CARRIER_NAMES[DEFAULT_CARRIER]}
                 </Button>
               </div>

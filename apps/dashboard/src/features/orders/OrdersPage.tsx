@@ -5,6 +5,7 @@ import { EmptyState } from '../../shared/ui/EmptyState';
 import { LoadingState } from '../../shared/ui/LoadingState';
 import { PageHeader } from '../../shared/ui/PageHeader';
 import { LabelCreatedBanner } from '../labels/LabelCreatedBanner';
+import { DEFAULT_CARRIER } from '../labels/defaultCarrier';
 import { MonthlyUsage } from '../labels/MonthlyUsage';
 import { useCreateLabel } from '../labels/useCreateLabel';
 import { useMonthlyUsage } from '../labels/useMonthlyUsage';
@@ -20,7 +21,7 @@ export function OrdersPage() {
   const [, setComparingOrder] = useState<Order | null>(null);
 
   async function handleCreateLabel(order: Order) {
-    const label = await createLabel(order);
+    const label = await createLabel(order, { carrier: DEFAULT_CARRIER });
     if (!label) return;
     setLastLabel({ label, order });
     orders.reload();
