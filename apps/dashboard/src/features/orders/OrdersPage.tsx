@@ -10,6 +10,7 @@ import { LabelCreatedBanner } from '../labels/LabelCreatedBanner';
 import { DEFAULT_CARRIER } from '../labels/defaultCarrier';
 import type { LabelChoice } from '../labels/labelIdempotencyKey';
 import { MonthlyUsage } from '../labels/MonthlyUsage';
+import { RateComparisonPanel } from '../labels/RateComparisonPanel';
 import { useCreateLabel } from '../labels/useCreateLabel';
 import { useMonthlyUsage } from '../labels/useMonthlyUsage';
 import { OrdersTable } from './OrdersTable';
@@ -20,12 +21,12 @@ export function OrdersPage() {
   const usage = useMonthlyUsage();
   const { createLabel, pendingOrderId, failure, dismissFailure } = useCreateLabel();
   const [lastLabel, setLastLabel] = useState<{ label: Label; order: Order } | null>(null);
-  // TODO: rate comparison
-  const [, setComparingOrder] = useState<Order | null>(null);
+  const [comparingOrder, setComparingOrder] = useState<Order | null>(null);
 
   async function handleCreateLabel(order: Order, choice: LabelChoice = { carrier: DEFAULT_CARRIER }) {
     const label = await createLabel(order, choice);
     if (!label) return;
+    setComparingOrder(null);
     setLastLabel({ label, order });
     orders.reload();
     usage.reload();
@@ -43,7 +44,7 @@ export function OrdersPage() {
 
       {lastLabel && <LabelCreatedBanner {...lastLabel} onDismiss={() => setLastLabel(null)} />}
 
-      {failure && (
+      {failure && failure.order.id !== comparingOrder?.id && (
         <div className="mb-4">
           <ErrorState
             compact
@@ -73,10 +74,25 @@ export function OrdersPage() {
             orders={orders.data?.data ?? []}
             pendingOrderId={pendingOrderId}
             onCreateLabel={handleCreateLabel}
-            onCompareRates={setComparingOrder}
+            onCompareRates={(order) => {
+              dismissFailure();
+              setComparingOrder(order);
+            }}
           />
         )}
       </Card>
+
+      {comparingOrder && (
+        <RateComparisonPanel
+          key={comparingOrder.id}
+          order={comparingOrder}
+          isBuying={pendingOrderId === comparingOrder.id}
+          buyError={failure?.order.id === comparingOrder.id ? failure.error : null}
+          onBuy={(rate) => handleCreateLabel(comparingOrder, { rateId: rate.id })}
+          onDismissError={dismissFailure}
+          onClose={() => setComparingOrder(null)}
+        />
+      )}
     </>
   );
 }
