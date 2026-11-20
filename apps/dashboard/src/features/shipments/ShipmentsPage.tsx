@@ -1,39 +1,50 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDebouncedValue } from '../../shared/hooks/useDebouncedValue';
 import { Card } from '../../shared/ui/Card';
 import { EmptyState } from '../../shared/ui/EmptyState';
 import { ErrorState } from '../../shared/ui/ErrorState';
 import { LoadingState } from '../../shared/ui/LoadingState';
 import { PageHeader } from '../../shared/ui/PageHeader';
 import { ShipmentDetailPanel } from './ShipmentDetailPanel';
+import { ShipmentFilters } from './ShipmentFilters';
 import { ShipmentsTable } from './ShipmentsTable';
+import { useShipmentFilters } from './useShipmentFilters';
 import { useShipments } from './useShipments';
 
 export function ShipmentsPage() {
   const { shipmentId } = useParams();
   const navigate = useNavigate();
-  const { data, error, isLoading, reload } = useShipments();
+  const { filters, setStatus, setSearch, searchParams } = useShipmentFilters();
+  // Wait until Inès stops typing: one request per search, not one per keystroke (rate limit).
+  const orderNumber = useDebouncedValue(filters.search.trim(), 300);
+  const { data, error, isLoading, reload } = useShipments({ status: filters.status, orderNumber: orderNumber || undefined });
+
+  const isFiltered = Boolean(filters.status || orderNumber);
+  // Keep the filters in the URL when opening or closing a shipment.
+  const goTo = (path: string) => navigate({ pathname: path, search: searchParams.toString() });
 
   return (
     <>
       <PageHeader title="Shipments" description="Every parcel since it left the workshop, most recent first." />
 
-      {/* TODO: filters */}
+      <ShipmentFilters filters={filters} onStatusChange={setStatus} onSearchChange={setSearch} />
+
       <Card>
         {error ? (
           <ErrorState error={error} onRetry={reload} />
         ) : isLoading && !data ? (
           <LoadingState label="Loading shipments…" />
         ) : data?.data.length === 0 ? (
-          <EmptyState title="No shipments yet" />
+          isFiltered ? <EmptyState title="No shipments match these filters" /> : <EmptyState title="No shipments yet" />
         ) : (
-          <>
-            <ShipmentsTable shipments={data?.data ?? []} selectedId={shipmentId} onSelect={(shipment) => navigate(`/shipments/${shipment.id}`)} />
+          <div className={isLoading ? 'opacity-60 transition-opacity' : undefined}>
+            <ShipmentsTable shipments={data?.data ?? []} selectedId={shipmentId} onSelect={(shipment) => goTo(`/shipments/${shipment.id}`)} />
             <p className="px-4 py-3 text-xs text-ink/50">Showing {data?.data.length} shipments</p>
-          </>
+          </div>
         )}
       </Card>
 
-      {shipmentId && <ShipmentDetailPanel shipmentId={shipmentId} onClose={() => navigate('/shipments')} />}
+      {shipmentId && <ShipmentDetailPanel shipmentId={shipmentId} onClose={() => goTo('/shipments')} />}
     </>
   );
 }
