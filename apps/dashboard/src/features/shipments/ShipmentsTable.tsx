@@ -1,6 +1,7 @@
 import type { Shipment } from '@colistra/sdk';
 import { CARRIER_NAMES } from '../../shared/colistra/carriers';
 import { formatRelative } from '../../shared/format/date';
+import { formatMoney } from '../../shared/format/money';
 import { cn } from '../../shared/ui/cn';
 import { Table, Td, Th } from '../../shared/ui/Table';
 import { ShipmentStatusBadge } from './ShipmentStatusBadge';
@@ -50,7 +51,7 @@ export function ShipmentsTable({ shipments, selectedId, onSelect }: ShipmentsTab
               <ShipmentStatusBadge status={shipment.status} />
             </Td>
             <Td className="text-right tabular-nums" data-testid="shipment-cost">
-              {shipment.cost.amount.toFixed(2)} €
+              {formatMoney(shipment.cost)}
             </Td>
             <Td className="text-right text-ink/60">{formatRelative(shipment.updatedAt)}</Td>
           </tr>
