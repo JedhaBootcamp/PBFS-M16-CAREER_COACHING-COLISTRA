@@ -1,0 +1,129 @@
+# Take over an unfinished app: Atelier Lune's shipping dashboard
+
+On your first day in a new job, you almost never start from a blank page. You inherit code someone else wrote, half-finished features, documentation you have to read, and more work than time. That's why more and more companies replace algorithm puzzles with **"take over this app" take-home tests**: they hand you a half-built project, an SDK you've never seen, a backlog you can't finish, and they read your **decisions** as carefully as your code.
+
+With AI assistants, writing code has become cheap. What interviewers want to see now is judgment: what you chose to do first, whether you read the docs instead of guessing, whether you followed the existing code, and whether you can explain your trade-offs. This exercise reproduces that format.
+
+Atelier Lune is a small ceramics shop that ships about 60 orders a day. Its ops manager, Inès, uses an internal dashboard built on **Colistra**, a shipping API. The developer who started the dashboard left mid-build. You're taking over.
+
+## By the end, you will
+
+- Get up to speed on an unfamiliar codebase and a third-party SDK in about 30 minutes
+- Prioritize a backlog under time pressure, putting user and business impact first
+- Fix bugs and ship features by following existing patterns instead of rewriting
+- Use an SDK correctly: units, pagination, typed errors, retries and idempotency
+- Make your AI assistant read the documentation, and catch it when it guesses
+- Write a `DECISIONS.md` that explains your choices and trade-offs, like in a real take-home test
+
+## Expected time
+
+**About 2 hours**, plus 5 minutes to present your choices.
+
+## Step 1: Fork and run the app (10 min)
+
+1. Fork the starter repository on GitHub: `https://github.com/YOUR-ORG/atelier-lune-shipping`
+2. Clone your fork, install and run:
+
+```bash
+npm install
+npm run dev
+```
+
+3. Open http://localhost:5173. Click around: the orders page, the shipments page, the detail panel. Try *Create label*.
+4. Run the checks to see where things stand:
+
+```bash
+npm run typecheck
+npm test
+```
+
+<Note type="tip" title="Start your timer now">
+The 2 hours include reading and planning. Write down your start time at the top of `DECISIONS.md`.
+</Note>
+
+## Step 2: Read the brief, the tasks and the SDK README (20 min)
+
+Read, in this order:
+
+1. `BRIEF.md`: the context, what Inès told us, the two non-negotiable requirements, the deliverables and how you'll be evaluated.
+2. `TASKS.md`: the 7 tickets. They describe what Inès experiences, not where the bugs are.
+3. `packages/colistra-sdk/README.md`: the Colistra SDK documentation. **Read all of it.** Every detail in there matters: amounts, pagination, errors, retries, idempotency, rate limits.
+4. `apps/dashboard/src/mocks/README.md`: how to simulate failures with `?chaos=`.
+
+Then skim the code in `apps/dashboard/src`: how pages load data (`shared/colistra/useColistraQuery.ts`), how amounts are formatted (`shared/format`), and which UI components already exist (`shared/ui`).
+
+<Note type="tip" title="Point your AI assistant to the SDK before asking for code">
+Colistra doesn't exist outside this repository. Your AI assistant has never seen it, and it will invent an API that looks plausible unless you give it the source. Before asking for any code, add `packages/colistra-sdk/README.md` and `packages/colistra-sdk/src` to its context (`@` files in Cursor, or "read these files first" in Claude Code), and ask it to summarize the rules for money, pagination, errors and idempotency. Check that summary against the README yourself.
+</Note>
+
+<Note type="tip" title="Reproduce before you fix">
+For each ticket, try to make the problem happen first. `?chaos=down`, `?chaos=flaky` and `?chaos=ratelimit` make failures appear on demand. A bug you have reproduced is a bug you can prove you fixed.
+</Note>
+
+## Step 3: Prioritize and write your plan in DECISIONS.md (10 min)
+
+Before writing any code, fill in the **Plan** section of `DECISIONS.md`: which tickets, in which order, and why. Aim for 3 or 4 tickets done properly. Commit this plan.
+
+Ask yourself, for each ticket:
+
+- What does it cost Inès or the business if it stays broken? Money lost? Time wasted every single day?
+- Is it one of the two non-negotiable requirements?
+- How long will it take? Is there a quick win with a big impact?
+- Does it depend on another ticket, or make another one riskier?
+
+<Note type="tip" title="Your plan is graded too">
+Interviewers read the plan you committed *before* coding. A plan that changed for a good reason, explained in a note, is fine. A plan written after the fact to match what you did is easy to spot in the commit history.
+</Note>
+
+## Step 4: Build (1h10)
+
+Work through your plan, one ticket at a time.
+
+- **Commit after each ticket** (or each meaningful step), with a clear message: `Fix shipment costs displayed in euros instead of cents (ALN-41)`.
+- **Follow the existing code.** If there's already a hook, a formatter or a component for something, use it or extend it. Don't add a new library to do what a few lines of code can do.
+- **Test what you change**: a unit test for a pure function, or a Playwright test for a user flow.
+- **Check every change in the browser**, including the failure cases.
+
+<Note type="tip" title="Review your AI's code like a pull request from a stranger">
+For every suggestion, ask: does it match what the SDK README says? Does it reuse the existing code, or duplicate it? Does it fix the cause, or hide the symptom? Disabling a button is not the same as guaranteeing a single charge, and dividing by 100 in one component is not the same as formatting money in one place. Write down every time you had to correct it: that's part of your deliverable.
+</Note>
+
+<Note type="tip" title="When time runs out">
+Stop and commit. A ticket half done but clearly described in `DECISIONS.md` is worth more than a rushed fix that breaks something else.
+</Note>
+
+## Step 5: Finish DECISIONS.md and deploy (10 min)
+
+1. **Deploy on Vercel**: import your fork at vercel.com/new. The settings in `vercel.json` work as is; there are no environment variables to set. Open the deployed URL and check that the app works (the mock API runs in production too).
+2. **Finish `DECISIONS.md`**: the deployed URL, what you did and why for each ticket done, why you skipped the others and what you'd do with more time, and how you used AI.
+3. **Push** and check that your last commit is on GitHub.
+
+## Step 6: Present your choices
+
+**In class:** you have **5 minutes** to present your choices: which tickets you picked and why, one trade-off you made, and one thing your AI got wrong. Don't demo everything; explain your decisions.
+
+**Working alone?** Answer these four questions as if you were in the interview.
+
+<AITextGrader
+  question="Which tickets did you work on, in which order, and why? Which ones did you leave out?"
+  templateAnswer="A strong answer starts with the two non-negotiable requirements: ALN-44 (never charge twice) because it costs real money and is invisible until the monthly invoice, and ALN-36 (never a blank screen) because the white page happens daily and hides whether a label was bought. Those two are linked: adding automatic retries without an idempotency key makes double charges more likely, so they should be done together, idempotency first. Next comes ALN-41 (costs shown in euros instead of cents): a few minutes of work for a visible, high-impact fix. Then ALN-33 (status filter and order search), because Inès spends every morning looking for parcels with an exception, so it saves her time every single day. Pagination (ALN-38) and rate comparison (ALN-29) come later: older shipments are needed less often and are partly covered by search, and rate comparison saves money but Inès has a workaround (the Colistra website) and it's the biggest feature. ALN-45 (CI) is done along the way by adding tests for each fix. The answer names what was left out and explains why, rather than just listing what was done."
+  isPasteAllowed={false}
+/>
+
+<AITextGrader
+  question="How did you make sure Inès can never be charged twice for the same label?"
+  templateAnswer="A strong answer uses the SDK's idempotency mechanism: labels.create() takes an idempotencyKey in its second argument (options), and Colistra returns the original label instead of charging again when it sees the same key within 24 hours. The key identifies the operation, not the HTTP request: for example label:{orderId}:{rateId} (or the carrier), so a double click, an automatic retry and a manual retry after an error all send the same key, while a deliberate new purchase with a fresh rate gets a new one. A random key generated on every call protects nothing. Disabling the button while the request is pending is a good UX addition but not the protection: it doesn't cover network retries, lost responses (the label was bought but the response never arrived) or two browser tabs. The answer mentions that SDK retries (maxRetries) are only safe for labels because of the key, and describes how it was tested, ideally an end-to-end test with ?chaos=flaky or a double click checking that the monthly label count only increased by one."
+  isPasteAllowed={false}
+/>
+
+<AITextGrader
+  question="Describe one thing your AI assistant got wrong about the Colistra SDK, and how you noticed."
+  templateAnswer="A strong answer gives a concrete, specific example and explains how it was caught, ideally by comparing with the README or the SDK source, or by reproducing the case in the browser. Typical examples: treating amount as euros or dividing by 100 inline in one component instead of reusing the shared formatMoney; passing the parcel weight in kilograms (order.package.weight.value) to rates.quote() which expects integer grams (weightGrams), leading to a validation error or absurd prices; using page or offset instead of cursor/nextCursor, or forgetting to resend the filters with the cursor; filtering the first 20 shipments in the browser instead of using the API's status and orderNumber filters; putting idempotencyKey in the request body instead of the options argument, or generating a new random key on each call; assuming the SDK retries by default when maxRetries is 0; catching errors without distinguishing ColistraRateLimitError (and its retryAfter) from other errors. The answer shows the student understood why the AI was wrong, not just that it was."
+  isPasteAllowed={false}
+/>
+
+<AITextGrader
+  question="If you had two more hours, what would you do, and in which order?"
+  templateAnswer="A strong answer continues the same prioritization logic instead of listing everything. It finishes the remaining tickets in order of impact for Inès, for example pagination with a 'Load more' button that follows nextCursor and keeps the current filters (ALN-38), then the rate comparison (ALN-29): quote with weight converted to grams, rates sorted with the cheapest and fastest highlighted, handling the 5% quote failures and expired rates, and buying with the chosen rateId and an idempotency key. It mentions quality work: end-to-end tests for the label flow and error states, a green CI, debouncing the order-number search to stay under the rate limit. It may suggest improvements beyond the backlog that show product sense: keeping filters in the URL so Inès can bookmark 'exceptions', showing how many parcels have a problem, or an alert when the same order gets two labels. Each item is justified by its impact, not just named."
+  isPasteAllowed={false}
+/>
