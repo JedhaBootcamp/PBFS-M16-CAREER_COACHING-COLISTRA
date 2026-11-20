@@ -12,6 +12,10 @@ describe('date formatting', () => {
     expect(formatDate('2026-03-14')).toBe('14 mars 2026');
   });
 
+  it('shows a dash when there is no date', () => {
+    expect(formatDate(null)).toBe('—');
+  });
+
   it('formats relative times', () => {
     const now = Date.parse('2026-03-14T12:00:00Z');
     expect(formatRelative('2026-03-14T09:00:00Z', now)).toBe('il y a 3 heures');

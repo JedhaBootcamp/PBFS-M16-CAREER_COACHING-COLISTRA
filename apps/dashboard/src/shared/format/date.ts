@@ -9,8 +9,8 @@ const dateTimeFormatter = new Intl.DateTimeFormat(LOCALE, {
   timeZone: TIME_ZONE,
 });
 
-/** `2026-03-14` or `2026-03-14T08:30:00Z` → `14 mars 2026` */
-export function formatDate(iso: string): string {
+/** `2026-03-14` or `2026-03-14T08:30:00Z` → `14 mars 2026`, or `—` when there is no date. */
+export function formatDate(iso: string | null): string {
   if (!iso) return '—';
   return dateFormatter.format(new Date(iso));
 }
