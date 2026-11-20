@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { cn } from '../ui/cn';
+import { ErrorBoundary } from './ErrorBoundary';
 
 const NAV_ITEMS = [
   { to: '/orders', label: 'Orders to ship' },
@@ -7,6 +8,8 @@ const NAV_ITEMS = [
 ];
 
 export function AppLayout() {
+  const { pathname } = useLocation();
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <aside className="flex shrink-0 flex-row items-center gap-6 bg-ink px-5 py-4 text-white md:w-60 md:flex-col md:items-stretch md:py-6">
@@ -33,7 +36,9 @@ export function AppLayout() {
       </aside>
       <main className="min-w-0 flex-1 px-4 py-8 md:px-10">
         <div className="mx-auto max-w-6xl">
-          <Outlet />
+          <ErrorBoundary resetKey={pathname}>
+            <Outlet />
+          </ErrorBoundary>
         </div>
       </main>
     </div>

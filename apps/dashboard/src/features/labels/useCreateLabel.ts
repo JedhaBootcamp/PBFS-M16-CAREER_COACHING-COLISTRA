@@ -12,20 +12,19 @@ import { labelIdempotencyKey, type LabelChoice } from './labelIdempotencyKey';
 export function useCreateLabel() {
   const colistra = useColistra();
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const [, setError] = useState<unknown>();
+  const [failure, setFailure] = useState<{ order: Order; choice: LabelChoice; error: unknown } | null>(null);
 
   const createLabel = useCallback(
     async (order: Order, choice: LabelChoice): Promise<Label | undefined> => {
       setPendingOrderId(order.id);
+      setFailure(null);
       try {
         return await colistra.labels.create(
           { orderId: order.id, ...choice },
           { idempotencyKey: labelIdempotencyKey(order, choice) },
         );
       } catch (error) {
-        setError(() => {
-          throw error;
-        });
+        setFailure({ order, choice, error });
       } finally {
         setPendingOrderId(null);
       }
@@ -33,5 +32,7 @@ export function useCreateLabel() {
     [colistra],
   );
 
-  return { createLabel, pendingOrderId };
+  const dismissFailure = useCallback(() => setFailure(null), []);
+
+  return { createLabel, pendingOrderId, failure, dismissFailure };
 }

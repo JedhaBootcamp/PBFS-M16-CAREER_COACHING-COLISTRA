@@ -3,13 +3,14 @@ import { CARRIER_NAMES } from '../../shared/colistra/carriers';
 import { formatDate, formatDateTime } from '../../shared/format/date';
 import { formatMoney } from '../../shared/format/money';
 import { Button } from '../../shared/ui/Button';
+import { ErrorState } from '../../shared/ui/ErrorState';
 import { LoadingState } from '../../shared/ui/LoadingState';
 import { ShipmentStatusBadge } from './ShipmentStatusBadge';
 import { getStatusDisplay } from './shipmentStatus';
 import { useShipment } from './useShipment';
 
 export function ShipmentDetailPanel({ shipmentId, onClose }: { shipmentId: string; onClose: () => void }) {
-  const { data: shipment, isLoading } = useShipment(shipmentId);
+  const { data: shipment, error, isLoading, reload } = useShipment(shipmentId);
 
   return (
     <aside
@@ -23,7 +24,9 @@ export function ShipmentDetailPanel({ shipmentId, onClose }: { shipmentId: strin
         </Button>
       </div>
 
-      {isLoading || !shipment ? (
+      {error ? (
+        <ErrorState error={error} onRetry={reload} />
+      ) : isLoading || !shipment ? (
         <LoadingState label="Loading shipment…" />
       ) : (
         <div className="space-y-6 px-6 py-5 text-sm">

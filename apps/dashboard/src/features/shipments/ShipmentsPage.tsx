@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card } from '../../shared/ui/Card';
 import { EmptyState } from '../../shared/ui/EmptyState';
+import { ErrorState } from '../../shared/ui/ErrorState';
 import { LoadingState } from '../../shared/ui/LoadingState';
 import { PageHeader } from '../../shared/ui/PageHeader';
 import { ShipmentDetailPanel } from './ShipmentDetailPanel';
@@ -10,7 +11,7 @@ import { useShipments } from './useShipments';
 export function ShipmentsPage() {
   const { shipmentId } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading } = useShipments();
+  const { data, error, isLoading, reload } = useShipments();
 
   return (
     <>
@@ -18,7 +19,9 @@ export function ShipmentsPage() {
 
       {/* TODO: filters */}
       <Card>
-        {isLoading && !data ? (
+        {error ? (
+          <ErrorState error={error} onRetry={reload} />
+        ) : isLoading && !data ? (
           <LoadingState label="Loading shipments…" />
         ) : data?.data.length === 0 ? (
           <EmptyState title="No shipments yet" />

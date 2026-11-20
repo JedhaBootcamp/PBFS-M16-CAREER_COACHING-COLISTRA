@@ -1,7 +1,11 @@
 import type { Account } from '@colistra/sdk';
 import { formatMoney } from '../../shared/format/money';
 
-export function MonthlyUsage({ account }: { account: Account | undefined }) {
+export function MonthlyUsage({ account, error }: { account: Account | undefined; error?: unknown }) {
+  if (error) {
+    return <p className="text-sm text-ink/50">This month's usage is unavailable right now.</p>;
+  }
+
   return (
     <dl className="flex gap-6 rounded-xl bg-white px-5 py-3 text-sm shadow-sm ring-1 ring-clay-200" data-testid="monthly-usage">
       <div>
