@@ -10,11 +10,13 @@ _Which tasks will you do, in which order, and why? What will you deliberately le
 
 | Order | Ticket | Why now |
 | ----- | ------ | ------- |
-| 1     |        |         |
-| 2     |        |         |
-| 3     |        |         |
-
-_Did the plan change while you worked? Why?_
+| 1 | ALN-44 Charged twice | Non-negotiable. Real money lost, invisible until the monthly invoice. Must come **before** any retry logic (ALN-36), otherwise retries make it worse. |
+| 2 | ALN-36 White page | Non-negotiable. Happens daily, and a white page right after *Create label* hides whether a label was bought. |
+| 3 | ALN-41 Costs ×100 | A few minutes for a very visible bug that scares the accountant. |
+| 4 | ALN-33 Filter & search | The most time Inès loses: every single morning, looking for problem parcels. |
+| 5 | ALN-45 Safety net | Done along the way: a test with each fix, then CI green if time allows. |
+| — | ALN-38 Pagination | Later: partly covered by the search in ALN-33. |
+| — | ALN-29 Rate comparison | Later: biggest feature, and Inès has a workaround (the Colistra website). |
 
 ## 2. Tasks done
 
